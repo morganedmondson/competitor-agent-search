@@ -3,39 +3,63 @@
 import { useState } from "react";
 
 interface Props {
-  onSearch: (url: string, radiusKm: number) => void;
+  onSearch: (url: string, radiusKm: number, postcode?: string) => void;
   loading: boolean;
 }
 
 export default function SearchForm({ onSearch, loading }: Props) {
   const [url, setUrl] = useState("");
   const [radius, setRadius] = useState(5);
+  const [postcode, setPostcode] = useState("");
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!url.trim()) return;
-    onSearch(url.trim(), radius);
+    onSearch(url.trim(), radius, postcode.trim() || undefined);
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label
-          htmlFor="url"
-          className="block text-sm font-medium text-gray-700 mb-1"
-        >
-          Customer website URL
-        </label>
-        <input
-          id="url"
-          type="text"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-          placeholder="e.g. https://smithestateagents.co.uk"
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition"
-          disabled={loading}
-          required
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="sm:col-span-2">
+          <label
+            htmlFor="url"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Customer website URL
+          </label>
+          <input
+            id="url"
+            type="text"
+            value={url}
+            onChange={(e) => setUrl(e.target.value)}
+            placeholder="e.g. https://smithestateagents.co.uk"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition"
+            disabled={loading}
+            required
+          />
+        </div>
+        <div>
+          <label
+            htmlFor="postcode"
+            className="block text-sm font-medium text-gray-700 mb-1"
+          >
+            Postcode{" "}
+            <span className="text-gray-400 font-normal">(optional)</span>
+          </label>
+          <input
+            id="postcode"
+            type="text"
+            value={postcode}
+            onChange={(e) => setPostcode(e.target.value)}
+            placeholder="e.g. SW1A 1AA"
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm shadow-sm focus:border-brand-500 focus:ring-2 focus:ring-brand-200 outline-none transition"
+            disabled={loading}
+          />
+          <p className="text-xs text-gray-400 mt-1">
+            Fill in if auto-detection fails
+          </p>
+        </div>
       </div>
 
       <div>

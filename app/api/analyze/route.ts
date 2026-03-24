@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const { url, radius_km = 5 } = body;
+  const { url, radius_km = 5, postcode_override } = body;
   if (!url) {
     return NextResponse.json({ error: "url is required" }, { status: 400 });
   }
@@ -19,6 +19,11 @@ export async function POST(req: NextRequest) {
   try {
     // Step 1: scrape the agency website
     const agency = await scrapeAgency(url);
+
+    // Allow manual postcode override if scraper couldn't find one
+    if (postcode_override) {
+      agency.postcode = postcode_override.trim().toUpperCase();
+    }
 
     // Step 2: find competitors via Google Places
     const competitors = await findCompetitors(agency, radius_km);

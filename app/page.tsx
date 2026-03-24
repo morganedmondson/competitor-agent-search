@@ -12,7 +12,7 @@ export default function Home() {
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [enrichingIds, setEnrichingIds] = useState<Set<string>>(new Set());
 
-  async function handleSearch(url: string, radiusKm: number) {
+  async function handleSearch(url: string, radiusKm: number, postcode?: string) {
     setLoading(true);
     setError(null);
     setAgency(null);
@@ -22,7 +22,7 @@ export default function Home() {
       const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ url, radius_km: radiusKm }),
+        body: JSON.stringify({ url, radius_km: radiusKm, postcode_override: postcode }),
       });
 
       const data: AnalyzeResponse & { error?: string } = await res.json();

@@ -39,6 +39,7 @@ export interface Contact {
 export interface AnalyzeRequest {
   url: string;
   radius_km?: number;
+  postcode_override?: string;
 }
 
 export interface AnalyzeResponse {
