@@ -20,9 +20,19 @@ export async function POST(req: NextRequest) {
     // Step 1: scrape the agency website
     const agency = await scrapeAgency(url);
 
-    // Allow manual postcode override if scraper couldn't find one
+    // Allow manual postcode override
     if (postcode_override) {
       agency.postcode = postcode_override.trim().toUpperCase();
+    }
+
+    // If still no postcode, return partial data and ask the user to provide one
+    if (!agency.postcode) {
+      const response: AnalyzeResponse = {
+        agency,
+        competitors: [],
+        needs_postcode: true,
+      };
+      return NextResponse.json(response);
     }
 
     // Step 2: find competitors via Google Places

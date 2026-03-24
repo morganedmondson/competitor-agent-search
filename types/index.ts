@@ -46,6 +46,7 @@ export interface AnalyzeResponse {
   agency: AgencyInfo;
   competitors: Competitor[];
   error?: string;
+  needs_postcode?: boolean; // true when postcode couldn't be detected
 }
 
 export interface EnrichRequest {

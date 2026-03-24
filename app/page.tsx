@@ -8,6 +8,7 @@ import type { AgencyInfo, Competitor, AnalyzeResponse } from "@/types";
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsPostcode, setNeedsPostcode] = useState(false);
   const [agency, setAgency] = useState<AgencyInfo | null>(null);
   const [competitors, setCompetitors] = useState<Competitor[]>([]);
   const [enrichingIds, setEnrichingIds] = useState<Set<string>>(new Set());
@@ -15,6 +16,7 @@ export default function Home() {
   async function handleSearch(url: string, radiusKm: number, postcode?: string) {
     setLoading(true);
     setError(null);
+    setNeedsPostcode(false);
     setAgency(null);
     setCompetitors([]);
 
@@ -29,6 +31,12 @@ export default function Home() {
 
       if (!res.ok || data.error) {
         setError(data.error ?? "Something went wrong");
+        return;
+      }
+
+      if (data.needs_postcode) {
+        setAgency(data.agency);
+        setNeedsPostcode(true);
         return;
       }
 
@@ -94,31 +102,14 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-brand-600 flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-white"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                />
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                />
+              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
             <div>
               <span className="font-bold text-gray-900">Nesti</span>
-              <span className="ml-2 text-sm text-gray-500">
-                Competitor Targeting
-              </span>
+              <span className="ml-2 text-sm text-gray-500">Competitor Targeting</span>
             </div>
           </div>
           <span className="text-xs bg-brand-50 text-brand-700 px-2.5 py-1 rounded-full font-medium border border-brand-100">
@@ -130,16 +121,31 @@ export default function Home() {
       <main className="max-w-6xl mx-auto px-6 py-10 space-y-8">
         {/* Search card */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-          <h1 className="text-lg font-semibold text-gray-900 mb-1">
-            Find local competitors
-          </h1>
+          <h1 className="text-lg font-semibold text-gray-900 mb-1">Find local competitors</h1>
           <p className="text-sm text-gray-500 mb-6">
-            Paste a customer&apos;s agency website URL. We&apos;ll extract their
-            location and find nearby estate &amp; letting agencies your sales
-            team can target.
+            Paste a customer&apos;s agency website URL. We&apos;ll extract their location and find
+            nearby estate &amp; letting agencies your sales team can target.
           </p>
-          <SearchForm onSearch={handleSearch} loading={loading} />
+          <SearchForm
+            onSearch={handleSearch}
+            loading={loading}
+            highlightPostcode={needsPostcode}
+            initialUrl={needsPostcode && agency ? agency.website : undefined}
+          />
         </div>
+
+        {/* Postcode needed banner */}
+        {needsPostcode && agency && (
+          <div className="rounded-xl bg-amber-50 border border-amber-200 px-5 py-4 text-sm text-amber-800">
+            <p className="font-semibold mb-1">
+              Postcode not found for {agency.name}
+            </p>
+            <p>
+              We couldn&apos;t automatically detect a postcode from this website.
+              Please type the agency&apos;s postcode into the <span className="font-medium">Postcode</span> field above and search again.
+            </p>
+          </div>
+        )}
 
         {/* Error state */}
         {error && (
@@ -149,7 +155,7 @@ export default function Home() {
         )}
 
         {/* Agency info banner */}
-        {agency && (
+        {agency && !needsPostcode && (
           <div className="bg-brand-50 border border-brand-100 rounded-xl px-5 py-4">
             <p className="text-xs font-semibold text-brand-700 uppercase tracking-wide mb-2">
               Customer agency detected
@@ -162,25 +168,16 @@ export default function Home() {
               {agency.postcode && (
                 <span>
                   <span className="text-gray-500">Postcode:</span>{" "}
-                  <span className="font-medium text-gray-900">
-                    {agency.postcode}
-                  </span>
+                  <span className="font-medium text-gray-900">{agency.postcode}</span>
                 </span>
               )}
               {agency.address && (
                 <span>
                   <span className="text-gray-500">Address:</span>{" "}
-                  <span className="font-medium text-gray-900 line-clamp-1">
-                    {agency.address}
-                  </span>
+                  <span className="font-medium text-gray-900 line-clamp-1">{agency.address}</span>
                 </span>
               )}
-              <a
-                href={agency.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-brand-600 hover:underline text-xs mt-0.5"
-              >
+              <a href={agency.website} target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline text-xs mt-0.5">
                 {agency.website}
               </a>
             </div>
@@ -189,15 +186,11 @@ export default function Home() {
 
         {/* Results */}
         {competitors.length > 0 && (
-          <ResultsTable
-            competitors={competitors}
-            onEnrich={handleEnrich}
-            enrichingIds={enrichingIds}
-          />
+          <ResultsTable competitors={competitors} onEnrich={handleEnrich} enrichingIds={enrichingIds} />
         )}
 
         {/* Empty state after search */}
-        {!loading && agency && competitors.length === 0 && !error && (
+        {!loading && agency && !needsPostcode && competitors.length === 0 && !error && (
           <div className="text-center py-12 text-gray-400 text-sm">
             No competitors found in this area. Try increasing the search radius.
           </div>
